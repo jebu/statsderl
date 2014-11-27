@@ -4,6 +4,8 @@
 -export([
     decrement/3,
     gauge/3,
+    gauge_decr/2,
+    gauge_incr/2,
     increment/3,
     pool_size/0,
     server_name/1,
@@ -39,6 +41,12 @@ decrement(Key, Value, SampleRate) ->
 
 gauge(Key, Value, SampleRate) ->
     maybe_send(gauge, Key, Value, SampleRate).
+
+gauge_decr(Key, Value) ->
+    maybe_send(gauge_decr, Key, Value, 1).
+
+gauge_incr(Key, Value) ->
+    maybe_send(gauge_incr, Key, Value, 1).
 
 increment(Key, Value, SampleRate) ->
     maybe_send(increment, Key, Value, SampleRate).
@@ -140,6 +148,10 @@ generate_packet(increment, Key, Value, SampleRate) ->
     [Key, <<":">>, Value, <<"|c">>, format_sample_rate(SampleRate)];
 generate_packet(gauge, Key, Value, _SampleRate) ->
     [Key, <<":">>, Value, <<"|g">>];
+generate_packet(gauge_decr, Key, Value, _SampleRate) ->
+    [Key, <<":-">>, Value, <<"|g">>];
+generate_packet(gauge_incr, Key, Value, _SampleRate) ->
+    [Key, <<":+">>, Value, <<"|g">>];
 generate_packet(timing, Key, Value, _SampleRate) ->
     [Key, <<":">>, Value, <<"|ms">>].
 
