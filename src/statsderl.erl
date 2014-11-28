@@ -77,7 +77,7 @@ init(_Args) ->
     {ok, Hostname} = application:get_env(statsderl, hostname),
     {ok, Port} = application:get_env(statsderl, port),
     BaseKey = get_base_key(application:get_env(statsderl, base_key)),
-    {ok, Socket} = gen_udp:open(0, [{active, false}]),
+    {ok, Socket} = gen_udp:open(0, [{active, true}]),
 
     {ok, #state {
         hostname = lookup_hostname(Hostname),
@@ -108,7 +108,8 @@ handle_cast({send, Packet}, #state {
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
-handle_info(_Info, State) ->
+handle_info(Info, State) ->
+    error_logger:info_msg("** UDP ** received ~p~n", [Info]),
     {noreply, State}.
 
 terminate(_Reason, _State) ->
