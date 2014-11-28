@@ -90,20 +90,19 @@ handle_call(_Request, _From, State) ->
     {noreply, ok, State}.
 
 handle_cast({send, Packet}, #state {
-        hostname = {A,B,C,D},
+        hostname = HostName,
         port = Port,
         socket = Socket,
         basekey = BaseKey} = State) ->
 
-    Message = [
-        [((Port) bsr 8) band 16#ff, (Port) band 16#ff],
-        [A band 16#ff, B band 16#ff, C band 16#ff, D band 16#ff],
-        [BaseKey, Packet]
-    ],
-    try erlang:port_command(Socket, Message) of
-        true -> ok
+    Message = [BaseKey, Packet],
+    try gen_udp:send(Socket, HostName, Port, Message) of
+        ok -> ok;
+        {error, Reason} ->
+          error_logger:info_msg("** UDP ** send failed ~p~n", [Reason])
     catch
-        _:_ -> ok
+        E1:E2 -> 
+          error_logger:info_msg("** UDP ** send failed ~p~n", [{E1, E2}])
     end,
     {noreply, State};
 handle_cast(_Msg, State) ->
